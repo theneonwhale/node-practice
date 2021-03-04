@@ -1,11 +1,9 @@
-const express = require('express')
-const router = express.Router()
-const Cats = require('../../model/cats')
-const validate = require('./validation')
+const Cats = require('../model/cats')
 
-router.get('/', async (req, res, next) => {
+const getAll = async (req, res, next) => {
   try {
-    const cats = await Cats.getAll()
+    const userId = req.user.id
+    const cats = await Cats.getAll(userId)
     return res.json({
       status: 'success',
       code: 200,
@@ -16,11 +14,12 @@ router.get('/', async (req, res, next) => {
   } catch (e) {
     next(e)
   }
-})
+}
 
-router.get('/:id', async (req, res, next) => {
+const getById = async (req, res, next) => {
   try {
-    const cat = await Cats.getById(req.params.id)
+    const userId = req.user.id
+    const cat = await Cats.getById(req.params.id, userId)
     if (cat) {
       return res.json({
         status: 'success',
@@ -39,11 +38,12 @@ router.get('/:id', async (req, res, next) => {
   } catch (e) {
     next(e)
   }
-})
+}
 
-router.post('/', validate.createCat, async (req, res, next) => {
+const create = async (req, res, next) => {
   try {
-    const cat = await Cats.create(req.body)
+    const userId = req.user.id
+    const cat = await Cats.create({ ...req.body, owner: userId })
     return res.status(201).json({
       status: 'success',
       code: 201,
@@ -54,11 +54,12 @@ router.post('/', validate.createCat, async (req, res, next) => {
   } catch (e) {
     next(e)
   }
-})
+}
 
-router.delete('/:id', async (req, res, next) => {
+const remove = async (req, res, next) => {
   try {
-    const cat = await Cats.remove(req.params.id)
+    const userId = req.user.id
+    const cat = await Cats.remove(req.params.id, userId)
     if (cat) {
       return res.json({
         status: 'success',
@@ -77,11 +78,12 @@ router.delete('/:id', async (req, res, next) => {
   } catch (e) {
     next(e)
   }
-})
+}
 
-router.put('/:id', validate.updateCat, async (req, res, next) => {
+const update = async (req, res, next) => {
   try {
-    const cat = await Cats.update(req.params.id, req.body)
+    const userId = req.user.id
+    const cat = await Cats.update(req.params.id, req.body, userId)
     if (cat) {
       return res.json({
         status: 'success',
@@ -100,33 +102,37 @@ router.put('/:id', validate.updateCat, async (req, res, next) => {
   } catch (e) {
     next(e)
   }
-})
+}
 
-router.patch(
-  '/:id/vaccinated',
-  validate.updateStatusCat,
-  async (req, res, next) => {
-    try {
-      const cat = await Cats.update(req.params.id, req.body)
-      if (cat) {
-        return res.json({
-          status: 'success',
-          code: 200,
-          data: {
-            cat,
-          },
-        })
-      } else {
-        return res.status(404).json({
-          status: 'error',
-          code: 404,
-          data: 'Not Found',
-        })
-      }
-    } catch (e) {
-      next(e)
+const updateStatus = async (req, res, next) => {
+  try {
+    const userId = req.user.id
+    const cat = await Cats.update(req.params.id, req.body, userId)
+    if (cat) {
+      return res.json({
+        status: 'success',
+        code: 200,
+        data: {
+          cat,
+        },
+      })
+    } else {
+      return res.status(404).json({
+        status: 'error',
+        code: 404,
+        data: 'Not Found',
+      })
     }
-  },
-)
+  } catch (e) {
+    next(e)
+  }
+}
 
-module.exports = router
+module.exports = {
+  getAll,
+  getById,
+  create,
+  update,
+  updateStatus,
+  remove,
+}
