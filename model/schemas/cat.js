@@ -1,5 +1,6 @@
-const mongoose = require('mongoose')
-const { Schema, model, SchemaTypes } = mongoose
+const mongoose = require('mongoose');
+const { Schema, model, SchemaTypes } = mongoose;
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 const catSchema = new Schema(
   {
@@ -19,7 +20,7 @@ const catSchema = new Schema(
     },
     features: {
       type: Array,
-      set: (data) => (!data ? [] : data),
+      set: data => (!data ? [] : data),
     },
     owner: {
       type: SchemaTypes.ObjectId,
@@ -27,12 +28,14 @@ const catSchema = new Schema(
     },
   },
   { versionKey: false, timestamps: true },
-)
+);
 
 catSchema.virtual('strAge').get(function () {
-  return `${this.age} лет`
-})
+  return `${this.age} лет`;
+});
 
-const Cat = model('cat', catSchema)
+catSchema.plugin(mongoosePaginate);
 
-module.exports = Cat
+const Cat = model('cat', catSchema);
+
+module.exports = Cat;
